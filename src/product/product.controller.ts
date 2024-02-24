@@ -12,20 +12,16 @@ export class ProductController {
     return this.productService.create(createProductDto);
   }
 
+  @Post('FindByFilter')
+  FindByFilter(@Body() params:any) {
+    return this.productService.findByFilter(params)
+  }
+
   @Get('findAll/:userId')
   findAll(@Param('userId') userId: string) {
     return this.productService.findAll(userId);
   }
 
-  @Get('findOne/:id')
-  findOne(@Param('id') id: string) {
-    return this.productService.findOne(id);
-  }
-
-  @Get('findByName/:name')
-  findByName(@Param('name') name: string) {
-    return this.productService.findByName(name);
-  }
 
   @Patch('update/:id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {

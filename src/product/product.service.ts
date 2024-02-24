@@ -51,37 +51,32 @@ export class ProductService {
     }
   }
 
-  async findOne(id: string) {
+  async findByFilter(params: any) {
     try {
-      const product = await this.productModel.findById(id);
+      switch (params.filter) {
+        case 'id':
+          const product = await this.productModel.findById(params.data);
+          if (product) {
+            return product;
+          } else {
+            throw new NotFoundException(`El producto con id: ${params.data} no está registrado`);
+          }
 
-      if (product) {
-        return product;
-      } else {
-        throw new NotFoundException(`El producto con id: ${id} no está registrado`);
+        case 'name':
+          const regex = new RegExp(params.data.split(" ").map((word:string) => `(?=.*\\b${word}\\b)`).join("") + ".*", "i");
+          const products = await this.productModel.find({
+            name: { $regex: regex }
+          });
+          if (products) {
+            return products;
+          } else {
+            throw new NotFoundException(`No se encontró el producto solicitado`);
+          }
       }
     } catch (error) {
       return new ConflictException('Ha ocurrido el siguiente error:', error.message);
     }
-  }
-
-
-  async findByName(name: string) {
-    try {
-      const regex = new RegExp(name.split(" ").map(word => `(?=.*\\b${word}\\b)`).join("") + ".*", "i");
-      const products = await this.productModel.find({
-        name: { $regex: regex }
-      });
-
-      if (products) {
-        return products;
-      } else {
-        throw new NotFoundException(`No se encontró el producto solicitado`);
-      }
-    } catch (error) {
-      return new ConflictException('Ha ocurrido el siguiente error:', error.message);
-    }
-  }
+  }  
 
 
   async update(id: string, updateProductDto: UpdateProductDto) {
@@ -114,7 +109,7 @@ export class ProductService {
             } else {
               productUpdated = await this.productModel.findByIdAndUpdate(id, { $inc: { stock: -1 } }, { new: true });
             }
-            productsUpdated.push(productUpdated.name);            
+            productsUpdated.push(productUpdated.name);
           }
         }
       }
@@ -123,7 +118,7 @@ export class ProductService {
         productsUpdated,
         info: "No se encontró registro de los productos con ids:",
         productsNotFound
-      };   
+      };
 
     } catch (error) {
       return new ConflictException('Ha ocurrido el siguiente error:', error.message);
